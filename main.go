@@ -18,6 +18,7 @@ func init() {
 	c.register("register", handlerRegister);
 	c.register("reset", handlerReset);
 	c.register("users", handlerUsers);
+	c.register("agg", handlerAggregate);
 }
 
 func main() {
