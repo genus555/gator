@@ -14,11 +14,13 @@ var dbURL string = "postgres://genus555:postgres@localhost:5432/gator?sslmode=di
 func init() {
 	c.commandRegistry = make(map[string]func(*state, command) error)
 
-	c.register("login", handlerLogin);
-	c.register("register", handlerRegister);
-	c.register("reset", handlerReset);
-	c.register("users", handlerUsers);
-	c.register("agg", handlerAggregate);
+	c.register("login", handlerLogin)
+	c.register("register", handlerRegister)
+	c.register("reset", handlerReset)
+	c.register("users", handlerUsers)
+	c.register("agg", handlerAggregate)
+	c.register("addfeed", handlerAddFeed)
+	c.register("feeds", handlerFeeds)
 }
 
 func main() {

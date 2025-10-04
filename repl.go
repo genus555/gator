@@ -113,3 +113,44 @@ func handlerAggregate(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.args) < 2 {
+		return fmt.Errorf("Missing URL or Name of feed")
+	}
+
+	user, err := s.db.GetUser(context.Background(), s.cfg_ptr.CurrentUserName)
+	if err != nil {return err}
+
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:			uuid.New(),
+		CreatedAt:	time.Now(),
+		UpdatedAt:	time.Now(),
+		Name:		cmd.args[0],
+		Url:		cmd.args[1],
+		UserID:	user.ID,
+	})
+	if err != nil {return err}
+
+	newFeed, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {return err}
+
+	fmt.Println(newFeed)
+
+	return nil
+}
+
+func handlerFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {return err}
+
+	for _, feed := range feeds {
+		user, err := s.db.GetUserFromID(context.Background(), feed.UserID)
+		if err != nil {return err}
+
+		fmt.Printf("%s:\n   URL: \"%s\"\n   Created By: \"%s\"\n",
+		feed.Name, feed.Url, user.Name)
+	}
+
+	return nil
+}
