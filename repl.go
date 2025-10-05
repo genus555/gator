@@ -107,13 +107,10 @@ func handlerAggregate(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) < 2 {
 		return fmt.Errorf("Missing URL or Name of feed")
 	}
-
-	user, err := s.db.GetUser(context.Background(), s.cfg_ptr.CurrentUserName)
-	if err != nil {return err}
 
 	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		Name:		cmd.args[0],
@@ -124,6 +121,11 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	newFeed, err := fetchFeed(context.Background(), feed.Url)
 	if err != nil {return err}
+
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		FeedID:		feed.ID,
+		UserID:		user.ID,
+	})
 
 	fmt.Println(newFeed)
 
@@ -142,5 +144,68 @@ func handlerFeeds(s *state, cmd command) error {
 		feed.Name, feed.Url, user.Name)
 	}
 
+	return nil
+}
+
+func handlerFeed(s *state, cmd command) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("No  URL detected")
+	}
+
+	feed, err := s.db.GetFeed(context.Background(), cmd.args[0])
+	if err != nil {return err}
+
+	fmt.Printf("Feed: %s\nURL: %s\n",feed.Name, feed.Url)
+	return nil
+}
+
+func handlerFollow(s *state, cmd command, user database.User) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("No feed detected")
+	}
+
+	feed, err := s.db.GetFeed(context.Background(), cmd.args[0])
+	if err != nil {return err}
+
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		FeedID:		feed.ID,
+		UserID:		user.ID,
+	})
+	if err != nil {return err}
+
+	fmt.Printf("Feed: %s\nCurrent User: %s\n", feed.Name, user.Name)
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command, user database.User) error {
+	feeds_followed, err := s.db.GetFeedFollowerForUser(context.Background(), user.ID)
+	if err != nil {return err}
+
+	fmt.Printf("Current User: %s\nFollowing:\n", user.Name)
+	for _, feed := range feeds_followed {
+		f, err := s.db.GetFeedFromFeedID(context.Background(), feed.FeedID)
+		if err != nil {return err}
+
+		fmt.Printf("   -\"%s\"\n", f.Name)
+	}
+
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("No URL detected")
+	}
+
+	feed, err := s.db.GetFeed(context.Background(), cmd.args[0])
+	if err != nil {return err}
+
+	err = s.db.Unfollow(context.Background(), database.UnfollowParams{
+		FeedID:		feed.ID,
+		UserID:		user.ID,
+	})
+	if err != nil {return err}
+
+	fmt.Printf("%s has unfollowed \"%s\"\n", user.Name, feed.Name)
 	return nil
 }

@@ -19,8 +19,12 @@ func init() {
 	c.register("reset", handlerReset)
 	c.register("users", handlerUsers)
 	c.register("agg", handlerAggregate)
-	c.register("addfeed", handlerAddFeed)
+	c.register("addfeed", LoggedIn(handlerAddFeed))
 	c.register("feeds", handlerFeeds)
+	c.register("feed", handlerFeed)
+	c.register("follow", LoggedIn(handlerFollow))
+	c.register("following", LoggedIn(handlerFollowing))
+	c.register("unfollow", LoggedIn(handlerUnfollow))
 }
 
 func main() {
