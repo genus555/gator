@@ -12,7 +12,7 @@ import (
 )
 
 const getFeedFromFeedID = `-- name: GetFeedFromFeedID :one
-SELECT id, created_at, updated_at, name, url, user_id FROM feeds
+SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at FROM feeds
     WHERE feeds.id = $1
 `
 
@@ -26,6 +26,7 @@ func (q *Queries) GetFeedFromFeedID(ctx context.Context, id uuid.UUID) (Feed, er
 		&i.Name,
 		&i.Url,
 		&i.UserID,
+		&i.LastFetchedAt,
 	)
 	return i, err
 }

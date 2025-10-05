@@ -46,4 +46,7 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	err = scrapeFeeds(&current_state)
+	if err != nil {fmt.Println(err)}
 }

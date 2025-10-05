@@ -5,6 +5,7 @@ import (
 	"github.com/genus555/gator/internal/database"
 	"fmt"
 	"context"
+	"time"
 )
 
 type state struct {
@@ -99,10 +100,18 @@ func handlerUsers(s *state, cmd command) error {
 }
 
 func handlerAggregate(s *state, cmd command) error {
-	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("Insert how many minutes between requests")
+	}
+
+	time_between_reqs := cmd.args[0]
+	tbq, err := time.ParseDuration(time_between_reqs+"m")
 	if err != nil {return err}
 
-	fmt.Println(feed)
+	fmt.Printf("Collecting feeds every %v minutes\n", time_between_reqs)
+
+	ticker := time.NewTicker(tbq)
+	for ; ; <-ticker.C {scrapeFeeds(s)}
 
 	return nil
 }
