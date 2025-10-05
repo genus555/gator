@@ -3,9 +3,7 @@ import _ "github.com/lib/pq"
 import (
 	"github.com/genus555/gator/internal/config"
 	"github.com/genus555/gator/internal/database"
-	"github.com/google/uuid"
 	"fmt"
-	"time"
 	"context"
 )
 
@@ -66,12 +64,7 @@ func handlerRegister(s *state, cmd command) error {
 	}
 
 	username := cmd.args[0]
-	user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
-		ID:			uuid.New(),
-		CreatedAt:	time.Now(),
-		UpdatedAt:	time.Now(),
-		Name:		username,
-	})
+	user, err := s.db.CreateUser(context.Background(), username)
 	if err != nil {return err}
 
 	err = config.SetUser(*s.cfg_ptr, user.Name)
@@ -123,9 +116,6 @@ func handlerAddFeed(s *state, cmd command) error {
 	if err != nil {return err}
 
 	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
-		ID:			uuid.New(),
-		CreatedAt:	time.Now(),
-		UpdatedAt:	time.Now(),
 		Name:		cmd.args[0],
 		Url:		cmd.args[1],
 		UserID:	user.ID,
