@@ -26,6 +26,7 @@ func init() {
 	c.register("following", LoggedIn(handlerFollowing))
 	c.register("unfollow", LoggedIn(handlerUnfollow))
 	c.register("browse", handlerBrowse)
+	c.register("browsebyfeed", handlerBrowseByFeed)
 }
 
 func main() {

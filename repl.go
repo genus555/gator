@@ -245,3 +245,35 @@ func handlerBrowse(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerBrowseByFeed(s *state, cmd command) error {
+	limit := 2
+	if len(cmd.args) < 1 {return fmt.Errorf("No Feed Url detected")}
+	if len(cmd.args) >= 2 {
+		l, err := strconv.Atoi(cmd.args[1])
+		if err != nil {return err}
+		limit = l
+	}
+
+	f, err := s.db.GetFeedIDByUrl(context.Background(), cmd.args[0])
+	if err != nil {return err}
+
+	posts, err := s.db.PostsByFeedID(context.Background(), database.PostsByFeedIDParams{
+		FeedID:		f,
+		Limit:		limit,
+	})
+
+	for _, post := range posts {
+		desc := ""
+		if post.Description.Valid {
+			desc = post.Description.String
+		}
+		desc = formatDescription(desc)
+		pub := post.PublishedAt.Format(time.RFC3339)
+
+		fmt.Printf("Post title: \"%s\"\nDescription: %s\nPublished: %s\nLink: %s\n",
+		post.Title, desc, pub, post.Url)
+	}
+
+	return nil
+}

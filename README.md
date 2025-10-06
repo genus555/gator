@@ -25,3 +25,6 @@ Commands (gator {command}):
 	*following: list all feeds user is following
 	*unfollow {url}: unfollow feed by url
 	*browse {num_of_entries}: show {num_of_entries} posts sorted by publish date
+        ** num_of_entries optional. default 2
+    *browsebyfeed {feed_url} {num_of_entries}: show {num_of_entries} posts in feed
+        ** num_of_entries optional. default 2
