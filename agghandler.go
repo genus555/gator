@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/genus555/gator/internal/database"
+	"github.com/lib/pq"
 )
 
 func scrapeFeeds(s *state) error {
@@ -21,12 +22,28 @@ func scrapeFeeds(s *state) error {
 	f, err := fetchFeed(context.Background(), nextFeed.Url)
 	if err != nil {return err}
 
-	fmt.Printf("Feed: \"%s\"\n", nextFeed.Name)
-	fmt.Println("Posts:")
-
 	for _, feed := range f.Channel.Item {
-		fmt.Printf("   -\"%s\"\n", feed.Title)
+		if feed.Title == "" {continue}
+
+		t, err := time.Parse(time.RFC1123Z, feed.PubDate)
+		if err != nil {return err}
+
+		err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			Title:			feed.Title,
+			Url:			feed.Link,
+			Description:	sql.NullString{String: feed.Description, Valid: true},
+			PublishedAt:	t,
+			FeedID:			nextFeed.ID,
+		})
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+				continue
+			}
+			fmt.Println("Error:", err)
+		}
 	}
+
+	fmt.Printf("Saved posts in feed: \"%s\"\n", nextFeed.Name)
 
 	return nil
 }

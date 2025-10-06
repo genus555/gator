@@ -7,6 +7,8 @@ import (
 	"io"
 	"encoding/xml"
 	"html"
+	"regexp"
+	"strings"
 )
 
 type RSSFeed struct {
@@ -57,4 +59,27 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	decodeFeed(&newFeed)
 
 	return &newFeed, nil
+}
+
+func formatDescription(desc string) string {
+    // replace <code>...</code> with newlines around content before stripping
+    codeBlock := regexp.MustCompile(`(?s)<pre[^>]*><code[^>]*>(.*?)</code></pre>`)
+    desc = codeBlock.ReplaceAllString(desc, "\n$1\n")
+
+    tagRE := regexp.MustCompile(`<[^>]+>`)
+    desc = tagRE.ReplaceAllString(desc, "")
+    desc = html.UnescapeString(desc)
+    desc = strings.TrimSpace(desc)
+    // collapse spaces but keep newlines
+    lines := strings.Split(desc, "\n")
+    for i := range lines {
+        lines[i] = strings.Join(strings.Fields(lines[i]), " ")
+    }
+    desc = strings.Join(lines, "\n")
+
+    // optional truncate
+    if len(desc) > 400 {
+        desc = desc[:400] + "..."
+    }
+    return desc
 }

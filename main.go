@@ -25,6 +25,7 @@ func init() {
 	c.register("follow", LoggedIn(handlerFollow))
 	c.register("following", LoggedIn(handlerFollowing))
 	c.register("unfollow", LoggedIn(handlerUnfollow))
+	c.register("browse", handlerBrowse)
 }
 
 func main() {
@@ -46,7 +47,4 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	err = scrapeFeeds(&current_state)
-	if err != nil {fmt.Println(err)}
 }

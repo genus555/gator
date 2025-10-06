@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"context"
 	"time"
+	"strconv"
 )
 
 type state struct {
@@ -216,5 +217,31 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	if err != nil {return err}
 
 	fmt.Printf("%s has unfollowed \"%s\"\n", user.Name, feed.Name)
+	return nil
+}
+
+func handlerBrowse(s *state, cmd command) error {
+	limit := 2
+	if len(cmd.args) >= 1 {
+		l, err := strconv.Atoi(cmd.args[0])
+		if err != nil {return err}
+		limit = l
+	}
+
+	posts, err := s.db.GetPosts(context.Background(), limit)
+	if err != nil {return err}
+
+	for _, post := range posts {
+		desc := ""
+		if post.Description.Valid {
+			desc = post.Description.String
+		}
+		desc = formatDescription(desc)
+		pub := post.PublishedAt.Format(time.RFC3339)
+
+		fmt.Printf("Post title: \"%s\"\nDescription: %s\nPublished: %s\nLink: %s\n",
+		post.Title, desc, pub, post.Url)
+	}
+
 	return nil
 }
